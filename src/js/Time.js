@@ -27,6 +27,14 @@ Time.prototype = {
 
         return result;
     },
+    // 変換
+    format : function(time){
+        var min = Math.floor(time / 60 / 60);
+        var sec = Math.floor((time - 60 * min) / 60) % 60;
+        var result = min + ":" + sec;
+
+        return result;
+    },
     // 停止
     stop : function(){
         this.isUpdate = false;
