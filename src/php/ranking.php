@@ -15,13 +15,15 @@
 
 	// 代理の値の入力
 	while ($l_row < 5){
-		$log[$l_row] = 999999;
+		$log[$l_row] = 60*60*100;
 		$l_row++;
 	}
 
 	// 今回のタイムを配列に
-	$l_row++;
-	$log[$l_row] = $time;
+	if ($time > 0){
+		$l_row++;
+		$log[$l_row] = $time;
+	}
 
 	// 配列をソート（昇順）
 	sort($log);

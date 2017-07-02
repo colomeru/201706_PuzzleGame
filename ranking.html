@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <title>2班_PuzzleGame_ランキング</title>
+        <style>
+        
+        </style>
+
+        <script src="src/js/jquery.min.js"></script>
+        <script src="src/js/Time.js"></script>
+
+    </head>
+    <body>
+        <canvas id="c1" width="640" height="480"></canvas>
+        <div id="result"><div>
+        <script type="text/javascript">
+            var results = [];
+            var time = new Time();
+
+            window.onload = function(){
+				document.addEventListener("mousedown", b_push, false);
+                timeSave();
+
+                time.init();
+				renderer_canvas();
+			}
+
+            var renderer_canvas = function(){
+				var ctx = doc("c1").getContext("2d");
+                time.update();
+                var currentTime = time.getTime();
+
+				ctx.fillStyle = "red";
+				ctx.fillRect(0,0,640,480);
+
+                txtDisplay(ctx, time.getTimeText(), 0,  0, 18, "white");
+                drawResult(ctx);
+
+				progress_timer = setTimeout("renderer_canvas()", 16);
+			}
+
+			function doc(id) {
+				return document.getElementById(id);
+			}
+			
+			function txtDisplay(ctx, txt, tx, ty, tsize, textcolor){
+				em = 0;
+				var tmp_data = [];
+				tmp_data = txt.split("<BR>");
+				ctx.font = tsize + "px 'ＭＳ Ｐゴシック'";
+				ctx.fillStyle = textcolor;
+
+				for(i=0;i<tmp_data.length;i++){
+					ctx.fillText(tmp_data[i], tx, (ty + (tsize) + ((tsize + em) * i)));
+				}
+			}
+
+            function b_push(event){
+				btn_push = 1;
+				btn_X = event.clientX;
+				btn_Y = event.clientY;
+
+                timeSave();
+			}
+
+            function formatText(currentTime){
+                var now = currentTime;
+                var min = Math.floor(now / 60 / 60);
+                var sec = Math.floor((now - 60 * min) / 60) % 60;
+                var result = min + "分" + sec + "秒";
+
+                return result;
+            }
+
+            function drawResult(ctx){
+                txtDisplay(ctx,　"今回のタイム" + formatText(time.getTime()), 150, 50, 36, "white");
+                
+                for(var i=0; i<5;i++){
+                    txtDisplay(ctx,　i+1 + "位　：　" + formatText(results[i]), 180, 200 + 50*i, 36, "white");
+                }
+
+            }
+
+            function timeSave(){
+                $.ajax({
+                    type: "POST",
+                    url:  "src/php/ranking.php",
+                    data: "sendData="+time.getTime(),
+                    dataType: "json",
+                    success: function(json){
+                        results = json;
+                    },
+                    error: function(json){
+                        alert("読み込みに失敗しました" + json);
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>
