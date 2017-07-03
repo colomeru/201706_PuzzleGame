@@ -16,6 +16,7 @@
         <script type="text/javascript">
             var results = [];
             var time = new Time();
+            var gameEnd = false;
 
             window.onload = function(){
 				document.addEventListener("mousedown", b_push, false);
@@ -34,8 +35,13 @@
 				ctx.fillRect(0,0,640,480);
 
                 txtDisplay(ctx, time.getTimeText(), 0,  0, 18, "white");
-                drawResult(ctx);
 
+                if(gameEnd){
+                    ctx.fillStyle = "rgba(128, 128, 128, 0.3)";
+                    ctx.fillRect(100,0,440,480);
+                    drawResult(ctx);
+                }
+                
 				progress_timer = setTimeout("renderer_canvas()", 16);
 			}
 
@@ -61,6 +67,7 @@
 				btn_Y = event.clientY;
 
                 timeSave();
+                gameEnd = true;
 			}
 
             function formatText(currentTime){
