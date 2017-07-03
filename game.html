@@ -2,23 +2,38 @@
 <html lang="ja">
     <head>
         <title>Game</title>
+        <script src="src/js/jquery.min.js"></script>
+        <script src="src/js/Time.js"></script>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     </head>
     <body>
     <canvas id="select" width="600" height="500"></canvas>
-    <script src="js/jquery.min.js"></script>
+    <div id="gotitle" style="position:absolute; top:400px; left:265px;">
+    <button type="button" name="GameStart" onclick="location.href='index.html'" value="">
+        <font size="6">TITLE</font>
+    </button>
+    </div>
+    <audio id="bgm" src="sound/bgm_maoudamashii_8bit29.mp3" auto></audio>
+        <audio id="atari" src="sound/se_maoudamashii_onepoint23.mp3" auto></audio>
+        <audio id="hazure" src="sound/se_maoudamashii_onepoint14.mp3" auto></audio>
     <script>
-        $(document).ready(function () {
+        var results = [];
+        var time = new Time();
+        var gameEnd = false;
+        $("#gotitle").hide();
             var canvas = $("#select").get(0);
             var ctx = canvas.getContext('2d');
+
+            
 
             var x = 0;
             var y = 0;
 			
 			var answer = "2,3,4,5,8,6,7,1,9,5,7,9,1,3,4,8,6,2,1,8,6,7,9,2,5,4,3,3,6,5,9,1,7,2,8,4,8,1,2,4,6,5,3,9,7,9,4,7,3,2,8,1,5,6,6,5,3,2,4,1,9,7,8,7,9,8,6,5,3,4,2,1,4,2,1,8,7,9,6,3,5";
 			var answer1 = answer.split(",");
-			// “ü—Íƒ}ƒX‘I‘ğ‚Ìs
+			// å…¥åŠ›ãƒã‚¹é¸æŠã®è¡Œ
             var BoradRowNum = 0;
-            // “ü—Íƒ}ƒX‘I‘ğ‚Ì—ñ
+            // å…¥åŠ›ãƒã‚¹é¸æŠã®åˆ—
             var BoradColumnNum = 0;
 			
 			function mass(inputNum,boxNum){
@@ -48,9 +63,9 @@
 			
 			//console.log(mass1[0].inputNum);
 
-            // “ü—Í”’l‘I‘ğ‚Ìs
+            // å…¥åŠ›æ•°å€¤é¸æŠã®è¡Œ
             var SelectRowNum = 0;
-            // “ü—Í”’l‘I‘ğ‚Ì—ñ
+            // å…¥åŠ›æ•°å€¤é¸æŠã®åˆ—
             var SelectColumnNum = 0;
 
             var inputNum = 0;
@@ -68,49 +83,86 @@
             var image = new Image();
             image.src = "selectNum.png";
             board.onload = function () {
-                ctx.drawImage(board, 75, 25);				//drawImage(image, dx, dy)
-				DrawInputNum();
+                timeSave();
+
+                time.init();
+                
+                render_canvas();
+
+                $("#bgm").get(0).loop = true;
+                $("#bgm").get(0).play();
                 /*
                 ctx.drawImage(image, 0, 150, 100, 50);	//drawImage(dx, dy, dw, dh)
                 ctx.drawImage(image,
-                          0,   0,	//ƒgƒŠƒ~ƒ“ƒOŠJn x, y
-                        100, 100, 	//ƒgƒŠƒ~ƒ“ƒOI—¹ x, y
-                          0,   0,	//Canvas•\¦À•W x, y
-                        200, 200	//k¬EŠg‘åƒTƒCƒY
+                          0,   0,	//ãƒˆãƒªãƒŸãƒ³ã‚°é–‹å§‹ x, y
+                        100, 100, 	//ãƒˆãƒªãƒŸãƒ³ã‚°çµ‚äº† x, y
+                          0,   0,	//Canvasè¡¨ç¤ºåº§æ¨™ x, y
+                        200, 200	//ç¸®å°ãƒ»æ‹¡å¤§ã‚µã‚¤ã‚º
                 );
                 */
             }
 
+            var render_canvas = function() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(board, 75, 25);				//drawImage(image, dx, dy)
+                DrawInputNum();
+                time.update();
+                var currentTime = time.getTime();
+
+                if (isClicked) {
+                    ctx.drawImage(image, x, y);
+                    ctx.drawImage(red, x + 22 + SelectColumnNum * 80, y + 22 + SelectRowNum * 80);
+                }
+
+                txtDisplay(ctx, time.getTimeText(), 0, 0, 18, "black");
+
+                if (gameEnd) {
+                    ctx.fillStyle = "rgba(128, 128, 128, 0.7)";
+                    ctx.fillRect(100, 0, 440, 480);
+                    drawResult(ctx);
+                }
+                else {
+                    var mass2 = [];
+                    for (var i = 0; i < mass1.length; i++) {
+                        if (mass1[i].correct == false) {
+                            mass2.push(mass1[i]);
+                        }
+                    }
+                    if (mass2.length == 0) {
+                        timeSave();
+                        time.stop();
+                        $("#gotitle").show();
+                        gameEnd = true;
+                    }
+                }
+
+                progress_timer = setTimeout("render_canvas()", 16);
+            }
+
             $(canvas)
-		    .attr("tabindex", 0)				//onkeyup/onkeydown‚ğg—p‚·‚é‚É•K—v
+		    .attr("tabindex", 0)				//onkeyup/onkeydownã‚’ä½¿ç”¨ã™ã‚‹æ™‚ã«å¿…è¦
 		    .focus()
             .on("mousedown", function (e) {
+                if (gameEnd) return;
                 x = e.clientX - 128;
                 y = e.clientY - 128;
 				if(x < 0) x = 0;
 				if(y < 0) y = 0;
 				if(x > 600 - 256) x = 600 - 256;
 				if(y > 500 - 256) y = 500 - 256;
-				DrawInputNum();
-                ctx.drawImage(image, x , y);
                 isClicked = true;
 				BoradColumnNum = Math.floor((e.clientX - 75) / 50);
 				BoradRowNum = Math.floor((e.clientY - 25) / 50);
-				console.log(BoradRowNum);
 				
             })
 			.on("mousemove", function (e) {
                 if (!isClicked) return;
-				DrawRect();
-				DrawInputNum()
-				ctx.drawImage(image, x, y);
                 SetCulRow(e.clientX,e.clientY);
-				ctx.drawImage(red, x + 22 + SelectColumnNum * 80, y  + 22 + SelectRowNum * 80);
+				
 				
             })
             .on("mouseup", function (e) {
                 if (!isClicked) return;
-                DrawRect();
 				isClicked = false;
                 SetCulRow(e.clientX,e.clientY);
 				var i = BoradColumnNum + BoradRowNum * 9;
@@ -120,22 +172,19 @@
 						CheckCul(Math.floor(i%9));
 						CheckRow(Math.floor(i/9));
 						CheckBox(mass1[i].boxNum);
-					}
+						$("#atari").get(0).play();
+                	}
+                	else {
+                	    $("#hazure").get(0).play();
+                	}
 				}
-				DrawInputNum();
+				
             })
             .on("mouseout", function (e) {
                 if (!isClicked) return;
-                DrawRect();
-				DrawInputNum();
 				isClicked = false;
 				
             });
-
-            function DrawRect() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(board, 75, 25);
-            }
 			
 			function SetCulRow(posX,posY){
 			if (x - (posX - 128) > 40) SelectColumnNum = 0;
@@ -190,14 +239,54 @@
 			
 			function Bom(){
 			var mass2 = [];
-				for(var i=0; i<mass1.length;i++){
-					if(mass1[i].correct==false){
-					mass2.push(mass1[i]);
-					}
-				}
-				if(mass2.length==0)return;
+				
 				var j = Math.floor(Math.random() * mass2.length);
 				mass2[j].correct = true;
+			}
+
+			function txtDisplay(ctx, txt, tx, ty, tsize, textcolor) {
+			    em = 0;
+			    var tmp_data = [];
+			    tmp_data = txt.split("<BR>");
+			    ctx.font = tsize + "px 'ï¼­ï¼³ ï¼°ã‚´ã‚·ãƒƒã‚¯'";
+			    ctx.fillStyle = textcolor;
+
+			    for (i = 0; i < tmp_data.length; i++) {
+			        ctx.fillText(tmp_data[i], tx, (ty + (tsize) + ((tsize + em) * i)));
+			    }
+			}
+
+			function formatText(currentTime) {
+			    var now = currentTime;
+			    var min = Math.floor(now / 60 / 60);
+			    var sec = Math.floor((now - 60 * min) / 60) % 60;
+			    var result = min + "åˆ†" + sec + "ç§’";
+
+			    return result;
+			}
+
+			function drawResult(ctx) {
+			    txtDisplay(ctx, "ä»Šå›ã®ã‚¿ã‚¤ãƒ " + formatText(time.getTime()), 150, 50, 36, "white");
+
+			    for (var i = 0; i < 5; i++) {
+			        txtDisplay(ctx, i + 1 + "ä½ã€€ï¼šã€€" + formatText(results[i]), 180, 130 + 50 * i, 36, "white");
+			    }
+
+			}
+
+			function timeSave() {
+			    $.ajax({
+			        type: "POST",
+			        url: "src/php/ranking.php",
+			        data: "sendData=" + time.getTime(),
+			        dataType: "json",
+			        success: function (json) {
+			            results = json;
+			        },
+			        error: function (json) {
+			            alert("èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸ" + json);
+			        }
+			    });
 			}
 			
 			function DrawInputNum(){
@@ -208,30 +297,30 @@
 					
 						if(mass1[i].first == false){
 							ctx.drawImage(numbs,
-                          	50*(mass1[i].inputNum - 1),   0,	//ƒgƒŠƒ~ƒ“ƒOŠJn x, y
-                        	50, 50, 	//ƒgƒŠƒ~ƒ“ƒOI—¹ x, y
-                          	(i%9) * 50 + 75,   Math.floor(i/9) * 50 + 25,	//Canvas•\¦À•W x, y
-                        	50, 50	//k¬EŠg‘åƒTƒCƒY
+                          	50*(mass1[i].inputNum - 1),   0,	//ãƒˆãƒªãƒŸãƒ³ã‚°é–‹å§‹ x, y
+                        	50, 50, 	//ãƒˆãƒªãƒŸãƒ³ã‚°çµ‚äº† x, y
+                          	(i%9) * 50 + 75,   Math.floor(i/9) * 50 + 25,	//Canvasè¡¨ç¤ºåº§æ¨™ x, y
+                        	50, 50	//ç¸®å°ãƒ»æ‹¡å¤§ã‚µã‚¤ã‚º
                 		);
 						}
 						if(mass1[i].first == true){
 							ctx.drawImage(nums,
-                          	50*(mass1[i].inputNum - 1),   0,	//ƒgƒŠƒ~ƒ“ƒOŠJn x, y
-                        	50, 50, 	//ƒgƒŠƒ~ƒ“ƒOI—¹ x, y
-                          	(i%9) * 50 + 75,   Math.floor(i/9) * 50 + 25,	//Canvas•\¦À•W x, y
-                        	50, 50	//k¬EŠg‘åƒTƒCƒY
+                          	50*(mass1[i].inputNum - 1),   0,	//ãƒˆãƒªãƒŸãƒ³ã‚°é–‹å§‹ x, y
+                        	50, 50, 	//ãƒˆãƒªãƒŸãƒ³ã‚°çµ‚äº† x, y
+                          	(i%9) * 50 + 75,   Math.floor(i/9) * 50 + 25,	//Canvasè¡¨ç¤ºåº§æ¨™ x, y
+                        	50, 50	//ç¸®å°ãƒ»æ‹¡å¤§ã‚µã‚¤ã‚º
                 		);
 						
 					}
 				}
 			}
         }
-		});
+		
         /*
-		50*(mass1[i].inputNum - 1),   0,	//ƒgƒŠƒ~ƒ“ƒOŠJn x, y
-                        50*(mass1[i].inputNum - 1) + 50, 50, 	//ƒgƒŠƒ~ƒ“ƒOI—¹ x, y
-                          i%9 * 50,   Math.floor(i/9) * 50,	//Canvas•\¦À•W x, y
-                        200, 200	//k¬EŠg‘åƒTƒCƒY
+		50*(mass1[i].inputNum - 1),   0,	//ãƒˆãƒªãƒŸãƒ³ã‚°é–‹å§‹ x, y
+                        50*(mass1[i].inputNum - 1) + 50, 50, 	//ãƒˆãƒªãƒŸãƒ³ã‚°çµ‚äº† x, y
+                          i%9 * 50,   Math.floor(i/9) * 50,	//Canvasè¡¨ç¤ºåº§æ¨™ x, y
+                        200, 200	//ç¸®å°ãƒ»æ‹¡å¤§ã‚µã‚¤ã‚º
 		*/
     </script>
     </body>
