@@ -4,6 +4,70 @@
         <title>201606_PuzzleGame</title>
     </head>
     <body>
-        TEST
-    </body>
+            <canvas id="GameMap_01" width="600" height="500"></canvas>
+            <div style="position:absolute; top:300px; left:265px;">
+            <button type="button" name="GameStart" onclick="location.href='game.html'" value="">
+            <font size="6">PLAY</font>
+            </button>
+            </div>
+            <script type="text/javascript" src="js/jquery.min.js"></script>
+            <script type="text/javascript">
+
+                /*グローバル変数*/
+                /*画像生成関数*/
+                var BackGround_01 = new Image();
+                var Number_01 = new Image();
+                /*ロード関数*/
+                var loaded = 0;
+                /*画面表示幅*/
+                var Disp_X = 600;
+                var Disp_Y = 500;
+                /*引数*/
+                var Rotate_X = 0;
+                var Rotate_Y = 0;
+                var Item_size = 100;
+
+                /*すべて読み込んでから呼び出し*/
+                window.onload = function () {
+                    /*実行*/
+                    Debug_Count();
+
+                    BackGround_01.src = "Resource/Title/bg01.png";
+                    Number_01.src = "Resource/Title/item_01.png";
+                }
+
+                /*何秒ごとに実行*/
+                var Debug_Count = function () {
+                    if (loaded == 0) {
+                        /*キャンバスオブジェクトに紐づけ*/
+                        m_CanvasContext = document.getElementById("GameMap_01").getContext("2d");
+                        rotationLoop();
+
+                    }
+                    Rotate_X = Rotate_X + 0.0025;
+                    var timer = setTimeout("Debug_Count();", 16);
+                }
+
+                function rotationLoop()
+                {
+                    /*背景描画*/
+                    m_CanvasContext.drawImage(BackGround_01, 0, 0);
+                    /*値保存*/
+                    m_CanvasContext.save();
+                    /*中心軸設定*/
+                    m_CanvasContext.translate(Number_01.width / 2, Number_01.height / 2);
+                    m_CanvasContext.transform(1, 0, 0, 1, 400, 250);
+                    /*回転*/
+                    m_CanvasContext.rotate(Rotate_X);
+                    /*元に戻す*/
+                    m_CanvasContext.translate(-1 * Number_01.width / 2, -1 * Number_01.height / 2);
+                    /*Number描画*/
+                    m_CanvasContext.drawImage(Number_01, 0, 0);
+                    /*キャンバスをもとに戻す*/
+                    m_CanvasContext.restore(); 
+                }
+      
+                
+            </script>
+</body>
 </html>
