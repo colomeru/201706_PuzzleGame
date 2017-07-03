@@ -240,9 +240,13 @@
 			
 			function Bom(){
 			var mass2 = [];
-				
+			for (var i = 0; i < mass1.length; i++) {
+			    if (mass1[i].correct == false) {
+			        mass2.push(i);
+			    }
+			}
 				var j = Math.floor(Math.random() * mass2.length);
-				mass2[j].correct = true;
+				mass1[mass2[j]].correct = true;
 			}
 
 			function txtDisplay(ctx, txt, tx, ty, tsize, textcolor) {
